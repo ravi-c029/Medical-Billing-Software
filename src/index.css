@@ -25,8 +25,13 @@
     @apply bg-background shadow-neu-up rounded-neu-btn font-medium transition-all duration-300 ease-in-out hover:shadow-neu-down active:shadow-neu-down border border-white/20 px-6 py-2 flex items-center justify-center gap-2;
   }
 
-  .neu-btn-primary {
-    @apply bg-primary text-white shadow-[4px_4px_10px_#1e5baf,-4px_-4px_10px_#3a9bff] hover:shadow-[inset_4px_4px_10px_#1e5baf,inset_-4px_-4px_10px_#3a9bff] border-none;
+  .neu-btn-primary, .neu-filter-active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    @apply text-white border-none shadow-[inset_1px_1px_1px_rgba(255,255,255,0.3),4px_4px_10px_rgba(30,58,138,0.3)] transition-all duration-300 !important;
+  }
+  
+  .neu-btn-primary:hover, .neu-filter-active:hover {
+    @apply shadow-[inset_4px_4px_10px_rgba(0,0,0,0.2)] !important;
   }
   
   .neu-btn-success {

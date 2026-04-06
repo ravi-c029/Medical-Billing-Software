@@ -77,7 +77,7 @@ export const ProductManager = () => {
               onClick={() => setCategoryTab(cat)}
               className={`px-4 py-2 rounded-neu-btn text-sm font-medium transition-all duration-300 ${
                 categoryTab === cat 
-                  ? 'bg-primary text-white shadow-[4px_4px_10px_#1e5baf,-4px_-4px_10px_#3a9bff]' 
+                  ? 'neu-filter-active' 
                   : 'text-slate-600 hover:text-primary'
               }`}
             >

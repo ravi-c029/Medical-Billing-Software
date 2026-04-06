@@ -8,6 +8,7 @@ interface ProductState {
   addProduct: (medicine: Medicine) => void;
   updateProduct: (id: string, updated: Partial<Medicine>) => void;
   deleteProduct: (id: string) => void;
+  setMedicines: (medicines: Medicine[]) => void;
 }
 
 export const useProductStore = create<ProductState>()(
@@ -21,6 +22,7 @@ export const useProductStore = create<ProductState>()(
       deleteProduct: (id) => set((state) => ({
         medicines: state.medicines.filter((m) => m.id !== id),
       })),
+      setMedicines: (newMedicines) => set({ medicines: newMedicines }),
     }),
     { name: 'ravi-product-storage' }
   )

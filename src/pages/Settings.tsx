@@ -3,13 +3,15 @@ import { useSettingsStore } from '../store/settingsStore';
 import { NeuCard } from '../components/ui/NeuCard';
 import { NeuButton } from '../components/ui/NeuButton';
 import { NeuInput } from '../components/ui/NeuInput';
-import { Save, CheckCircle, Upload, Trash2 } from 'lucide-react';
+import { Save, CheckCircle, Upload, Trash2, FileSpreadsheet } from 'lucide-react';
+import { useProductStore } from '../store/productStore';
 
 export const Settings = () => {
   const { settings, updateSettings } = useSettingsStore();
 
   const [formData, setFormData] = useState(settings);
   const [saved, setSaved] = useState(false);
+  const { setMedicines } = useProductStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -40,6 +42,56 @@ export const Settings = () => {
     updateSettings(formData);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const text = event.target?.result as string;
+          const lines = text.split('\n').filter(line => line.trim() !== '');
+          if (lines.length < 2) return;
+
+          const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+          
+          const newMedicines = lines.slice(1).map((line, index) => {
+            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+            const row: any = {};
+            headers.forEach((h, i) => {
+              row[h] = values[i];
+            });
+            
+            return {
+              id: row.id || `imported-${Date.now()}-${index}`,
+              name: row.name || 'Unnamed Product',
+              hsn: row.hsn || '3004',
+              mrp: Number(row.mrp) || 0,
+              mfdBy: row.mfd_by || row.mfdby || 'N/A',
+              taxPercent: Number(row.gst_percent) || Number(row.tax_percent) || 12,
+              category: (function(cat) {
+                const c = (cat || 'General').toLowerCase().trim();
+                if (c.includes('tablet')) return 'Tablets';
+                if (c.includes('syrup')) return 'Syrups';
+                if (c.includes('oil')) return 'Oils';
+                if (c.includes('capsule')) return 'Capsules';
+                if (c.includes('ointment')) return 'Ointments';
+                return c.charAt(0).toUpperCase() + c.slice(1);
+              })(row.category),
+              stock: Number(row.stock) || 0
+            };
+          });
+          
+          setMedicines(newMedicines);
+          alert(`Successfully imported ${newMedicines.length} products from CSV!`);
+        } catch (error) {
+          console.error("CSV Import Error:", error);
+          alert("Error parsing CSV. Please ensure it's a valid format.");
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   return (
@@ -106,6 +158,33 @@ export const Settings = () => {
                   </label>
                 )}
               </div>
+            </div>
+          </div>
+        </NeuCard>
+
+        <NeuCard className="md:col-span-2">
+          <h3 className="text-lg font-bold text-slate-700 mb-4 border-b border-white/20 pb-2">Inventory Management</h3>
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-700 mb-2">Import Products from CSV</p>
+              <p className="text-xs text-slate-500 mb-4">
+                Download your medicines table from Supabase as CSV and upload it here. 
+                Existing products will be replaced with the new list.
+              </p>
+              <label className="neu-btn neu-btn-primary w-fit cursor-pointer">
+                <FileSpreadsheet size={18} />
+                Upload CSV File
+                <input type="file" accept=".csv" className="hidden" onChange={handleCSVUpload} />
+              </label>
+            </div>
+            <div className="bg-slate-100 p-4 rounded-neu-card border border-slate-200 text-xs text-slate-600 w-full md:w-64">
+              <p className="font-bold mb-2">Required CSV Columns:</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>name (Product Name)</li>
+                <li>mrp (Price)</li>
+                <li>gst_percent (Tax %)</li>
+                <li>category (Type)</li>
+              </ul>
             </div>
           </div>
         </NeuCard>

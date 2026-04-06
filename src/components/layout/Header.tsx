@@ -46,7 +46,7 @@ export const Header: React.FC = () => {
           />
         </div>
 
-        <NeuButton variant="primary" icon={<Plus size={18} />} onClick={() => navigate('/new-invoice')} className="whitespace-nowrap flex-shrink-0 flex-1 md:flex-none">
+        <NeuButton icon={<Plus size={18} />} onClick={() => navigate('/new-invoice')} className="whitespace-nowrap flex-shrink-0 flex-1 md:flex-none">
           <span className="hidden sm:inline">New Invoice</span>
           <span className="sm:hidden text-sm">New</span>
         </NeuButton>
