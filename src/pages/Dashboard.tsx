@@ -4,7 +4,7 @@ import { useProductStore } from '../store/productStore';
 import { StatCard } from '../components/dashboard/StatCard';
 import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { NeuCard } from '../components/ui/NeuCard';
-import { format, isToday, subMonths, eachMonthOfInterval, isSameMonth } from 'date-fns';
+import { format, isToday, eachMonthOfInterval, isSameMonth } from 'date-fns';
 import { IndianRupee, FileText, Package, Clock } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -21,14 +21,28 @@ export const Dashboard = () => {
     return invoices.filter((inv) => inv.status === 'unpaid').length;
   }, [invoices]);
 
-  // DERIVE Dynamic monthly data for chart
+  // DERIVE Dynamic monthly data starting from April (Financial Year)
   const chartData = useMemo(() => {
-    const last6Months = eachMonthOfInterval({
-      start: subMonths(new Date(), 5),
-      end: new Date(),
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth(); // 0 is January
+    
+    // Indian Financial Year starts in April (Month Index 3)
+    let startYear = currentYear;
+    if (currentMonth < 3) {
+      startYear = currentYear - 1;
+    }
+    
+    // Always show full 12 months of the financial year (Apr to Mar)
+    const financialYearStart = new Date(startYear, 3, 1);
+    const financialYearEnd = new Date(startYear + 1, 2, 31);
+    
+    const months = eachMonthOfInterval({
+      start: financialYearStart,
+      end: financialYearEnd,
     });
 
-    return last6Months.map(month => {
+    return months.map(month => {
       const monthName = format(month, 'MMM');
       const revenue = invoices
         .filter(inv => isSameMonth(new Date(inv.date), month))

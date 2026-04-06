@@ -95,7 +95,7 @@ export const Settings = () => {
                   <div className="flex flex-col items-center gap-2">
                     <img src={formData.signatureImage} alt="Signature" className="h-16 object-contain" />
                     <button onClick={clearSignature} className="text-xs text-danger flex items-center gap-1 hover:underline">
-                      <Trash2 size={12} /> Remove
+                      <Trash2 size={12} /> Remove Signature
                     </button>
                   </div>
                 ) : (

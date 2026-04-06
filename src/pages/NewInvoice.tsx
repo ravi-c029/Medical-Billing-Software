@@ -22,6 +22,7 @@ export const NewInvoice = () => {
   const [customerName, setCustomerName] = useState('');
   const [address, setAddress] = useState('');
   const [mobile, setMobile] = useState('');
+  const [customerDlNo, setCustomerDlNo] = useState('');
   const [paymentMode, setPaymentMode] = useState<Invoice['paymentMode']>('Cash');
   const [status, setStatus] = useState<Invoice['status']>('paid');
   
@@ -106,6 +107,7 @@ export const NewInvoice = () => {
       customerName,
       address,
       mobile,
+      customerDlNo,
       items: items.filter(i => i.productName && Number(i.qty) > 0).map(i => ({
         ...i,
         qty: Number(i.qty) || 0,
@@ -144,7 +146,7 @@ export const NewInvoice = () => {
   }, [printData, handlePrint]);
 
   const clearForm = () => {
-    setCustomerName(''); setAddress(''); setMobile('');
+    setCustomerName(''); setAddress(''); setMobile(''); setCustomerDlNo('');
     setItems(Array.from({ length: 5 }, () => ({ ...emptyLine, id: Date.now().toString() + Math.random() })));
   };
 
@@ -190,6 +192,7 @@ export const NewInvoice = () => {
             <NeuInput label="Customer Name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="col-span-1 sm:col-span-2" placeholder="Required" />
             <NeuInput label="Address" value={address} onChange={(e) => setAddress(e.target.value)} className="col-span-1 sm:col-span-2" />
             <NeuInput label="Mobile No" value={mobile} onChange={(e) => setMobile(e.target.value)} maxLength={10} />
+            <NeuInput label="Customer DL No" value={customerDlNo} onChange={(e) => setCustomerDlNo(e.target.value)} />
             <div className="flex flex-col gap-1 w-full text-slate-700">
               <label className="text-sm font-semibold pl-1">Payment</label>
               <select className="neu-input" value={paymentMode} onChange={(e) => setPaymentMode(e.target.value as any)}>

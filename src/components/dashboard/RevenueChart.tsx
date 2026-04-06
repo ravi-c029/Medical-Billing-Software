@@ -19,10 +19,16 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
       </div>
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <BarChart data={data} margin={{ top: 10, right: 10, left: 30, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} dx={-10} tickFormatter={(val) => `₹${val/1000}k`} />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={10} />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#64748b', fontSize: 11 }} 
+              width={65}
+              tickFormatter={(val) => val >= 1000 ? `${(val/1000).toFixed(1)}k` : val} 
+            />
             <Tooltip 
               cursor={{ fill: 'transparent' }}
               contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '6px 6px 12px #b8bec7, -6px -6px 12px #ffffff', backgroundColor: '#e0e5ec' }}

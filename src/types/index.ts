@@ -30,6 +30,7 @@ export interface Invoice {
   customerName: string;
   address: string;
   mobile: string;
+  customerDlNo: string;
   items: InvoiceLineItem[];
   subTotal: number;
   cgstPercent: number;

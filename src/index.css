@@ -58,6 +58,7 @@
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 
+
 /* Invoices Print Styles overriding */
 @media print {
   @page {

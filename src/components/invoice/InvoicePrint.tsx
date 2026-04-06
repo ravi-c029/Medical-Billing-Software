@@ -34,6 +34,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(({ inv
           <p><strong>Customer:</strong> {invoice.customerName}</p>
           <p><strong>Address:</strong> {invoice.address || 'N/A'}</p>
           <p><strong>Mobile:</strong> {invoice.mobile || 'N/A'}</p>
+          {invoice.customerDlNo && <p><strong>DL No:</strong> {invoice.customerDlNo}</p>}
         </div>
         <div className="w-1/2 p-3">
           <p><strong>Invoice No:</strong> {invoice.invoiceNo}</p>
