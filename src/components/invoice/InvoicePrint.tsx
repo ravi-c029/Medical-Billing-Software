@@ -11,10 +11,10 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(({ inv
   if (!invoice) return null;
 
   return (
-    <div ref={ref} className="bg-white text-black p-6 w-[210mm] max-w-full mx-auto hidden print-only flex flex-col h-[277mm]" style={{ fontFamily: "'Playfair Display', serif" }}>
+    <div ref={ref} className="bg-white text-black p-4 w-[210mm] max-w-full mx-auto hidden print-only flex flex-col" style={{ fontFamily: "'Playfair Display', serif" }}>
       
       {/* HEADER */}
-      <div className="text-center mb-6 border-b-2 border-black pb-4">
+      <div className="text-center mb-4 border-b-2 border-black pb-2">
         <h1 className="text-3xl font-bold uppercase tracking-wider mb-1">{settings.agencyName}</h1>
         <p className="text-sm">{settings.address}</p>
         <p className="text-sm">Mob: {settings.mobile} | {settings.website}</p>
@@ -29,7 +29,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(({ inv
       </div>
 
       {/* CUSTOMER & INVOICE META */}
-      <div className="flex justify-between border border-black mb-6">
+      <div className="flex justify-between border border-black mb-4">
         <div className="w-1/2 p-3 border-r border-black">
           <p><strong>Customer:</strong> {invoice.customerName}</p>
           <p><strong>Address:</strong> {invoice.address || 'N/A'}</p>
@@ -44,7 +44,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(({ inv
       </div>
 
       {/* ITEMS TABLE */}
-      <table className="w-full text-left border border-black mb-6 text-sm">
+      <table className="w-full text-left border border-black mb-4 text-sm">
         <thead>
           <tr className="border-b border-black">
             <th className="p-2 border-r border-black w-10">Sl</th>
@@ -77,7 +77,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(({ inv
             </tr>
           ))}
           {/* Fill empty rows to make it look full if few items */}
-          {Array.from({ length: Math.max(0, 10 - invoice.items.length) }).map((_, i) => (
+          {Array.from({ length: Math.max(0, 8 - invoice.items.length) }).map((_, i) => (
             <tr key={`empty-${i}`}>
               <td className="p-2 border-r border-black text-transparent">.</td>
               <td className="p-2 border-r border-black"></td><td className="p-2 border-r border-black"></td>
@@ -91,7 +91,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(({ inv
       </table>
 
       {/* TOTALS & WORDS */}
-      <div className="flex border border-black mb-6">
+      <div className="flex border border-black mb-4">
         <div className="w-2/3 p-4 border-r border-black flex flex-col justify-center">
           <p className="text-sm font-semibold mb-2">Amount in Words:</p>
           <p className="text-lg font-bold italic">{invoice.amountInWords || numberToIndianWords(invoice.grandTotal)}</p>
