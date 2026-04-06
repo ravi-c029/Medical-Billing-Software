@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-slate-800 font-ui antialiased selection:bg-primary selection:text-white transition-colors duration-300;
+    margin: 0;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .neu-card {
+    @apply bg-background shadow-neu-up rounded-neu-card border border-white/20;
+  }
+  
+  .neu-card-inset {
+    @apply bg-background shadow-neu-down rounded-neu-card border border-white/10;
+  }
+  
+  .neu-btn {
+    @apply bg-background shadow-neu-up rounded-neu-btn font-medium transition-all duration-300 ease-in-out hover:shadow-neu-down active:shadow-neu-down border border-white/20 px-6 py-2 flex items-center justify-center gap-2;
+  }
+
+  .neu-btn-primary {
+    @apply bg-primary text-white shadow-[4px_4px_10px_#1e5baf,-4px_-4px_10px_#3a9bff] hover:shadow-[inset_4px_4px_10px_#1e5baf,inset_-4px_-4px_10px_#3a9bff] border-none;
+  }
+  
+  .neu-btn-success {
+    @apply bg-success text-white shadow-[4px_4px_10px_#008a6f,-4px_-4px_10px_#00e6b9] hover:shadow-[inset_4px_4px_10px_#008a6f,inset_-4px_-4px_10px_#00e6b9] border-none;
+  }
+  
+  .neu-btn-danger {
+    @apply bg-danger text-white shadow-[4px_4px_10px_#ad392d,-4px_-4px_10px_#ff5f4b] hover:shadow-[inset_4px_4px_10px_#ad392d,inset_-4px_-4px_10px_#ff5f4b] border-none;
+  }
+  
+  .neu-input {
+    @apply bg-background shadow-neu-down rounded-neu-input border-none px-4 py-2 outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 placeholder-slate-400 w-full;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Stagger delay classes for lists */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+
+/* Invoices Print Styles overriding */
+@media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+  body {
+    background: white;
+    font-family: 'Playfair Display', serif;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+    min-height: auto !important;
+    page-break-inside: avoid;
+  }
+}
