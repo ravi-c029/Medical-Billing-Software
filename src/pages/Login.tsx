@@ -1,45 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as faceapi from 'face-api.js';
-import Webcam from 'react-webcam';
 import { useAuthStore } from '../store/authStore';
 import { NeuInput } from '../components/ui/NeuInput';
 import { NeuButton } from '../components/ui/NeuButton';
-import { Camera, Lock, UserPlus, Key, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
-
-const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+import { PatternLock } from '../components/ui/PatternLock';
+import { Lock, UserPlus, Key, ShieldCheck, AlertCircle, Fingerprint, ChevronRight } from 'lucide-react';
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { register, login, loginWithFace, isRegistered, isAuthenticated } = useAuthStore();
+  const { register, login, loginWithPattern, isRegistered, isAuthenticated } = useAuthStore();
   
   const [isLoginView, setIsLoginView] = useState(isRegistered);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
-  const [isModelLoading, setIsModelLoading] = useState(true);
-  const [isScanning, setIsScanning] = useState(false);
-  
-  const webcamRef = useRef<Webcam>(null);
-
-  // Load Models
-  useEffect(() => {
-    const loadModels = async () => {
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-        ]);
-        setIsModelLoading(false);
-      } catch (err) {
-        console.error("Failed to load face-api models", err);
-        setError("AI models failed to load. Please check internet connection.");
-        setIsModelLoading(false);
-      }
-    };
-    loadModels();
-  }, []);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isPatternError, setIsPatternError] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -68,55 +44,34 @@ export const Login = () => {
     }
   };
 
-  const captureFace = useCallback(async () => {
-    if (!webcamRef.current) {
-      setError("Webcam not ready. Please wait.");
-      return;
-    }
-    
-    setIsScanning(true);
+  const handlePatternComplete = (pattern: number[]) => {
     setError('');
+    setIsPatternError(false);
 
-    try {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (!imageSrc) {
-        setError("Could not access camera feed");
-        return;
-      }
-
-      const img = await faceapi.fetchImage(imageSrc);
-      const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-      if (!detection) {
-        setError("No face detected. Align your face in the box.");
-        return;
-      }
-
-      const descriptorArray = Array.from(detection.descriptor);
-
-      if (isLoginView) {
-        if (loginWithFace(descriptorArray)) {
-          navigate('/');
-        } else {
-          setError("Identity mismatch. Use passcode.");
-        }
+    if (isLoginView) {
+      if (loginWithPattern(pattern)) {
+        setIsSuccess(true);
+        setTimeout(() => navigate('/'), 1000);
       } else {
-        if (passcode.length < 4) {
-          setError("Set a 4-digit passcode first to backup Face ID");
-          return;
-        }
-        register(passcode, descriptorArray);
-        navigate('/');
+        setIsPatternError(true);
+        setError('Unauthorized Pattern Sequence');
       }
-    } catch (err) {
-      console.error("Biometric capture failed", err);
-      setError("Biometric capture failed. Try again.");
-    } finally {
-      setIsScanning(false);
+    } else {
+      if (passcode.length < 4) {
+        setError("Set a 4-digit passcode first to secure your pattern");
+        setIsPatternError(true);
+        return;
+      }
+      if (pattern.length < 4) {
+        setError("Pattern must connect at least 4 nodes");
+        setIsPatternError(true);
+        return;
+      }
+      register(passcode, pattern);
+      setIsSuccess(true);
+      setTimeout(() => navigate('/'), 1000);
     }
-  }, [isLoginView, passcode, register, loginWithFace, navigate]);
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -127,7 +82,7 @@ export const Login = () => {
 
       <div className="w-full max-w-[500px] relative z-10">
         <motion.div 
-          className="bg-background shadow-neu-up rounded-[40px] overflow-hidden min-h-[700px] flex flex-col relative"
+          className="bg-background shadow-neu-up rounded-[40px] overflow-hidden min-h-[750px] flex flex-col relative"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -137,8 +92,8 @@ export const Login = () => {
             <div className="w-16 h-16 bg-primary/10 rounded-2xl shadow-neu-up flex items-center justify-center mx-auto mb-4">
               <ShieldCheck className="text-primary" size={32} />
             </div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Ravi Agency</h1>
-            <p className="text-slate-500 text-sm font-medium">Smart Biometric Security</p>
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight uppercase">Ravi Medical Agency</h1>
+            <p className="text-slate-500 text-sm font-medium">Neural Pattern Security enabled</p>
           </div>
 
           {/* Error Message */}
@@ -159,47 +114,49 @@ export const Login = () => {
           <div className="flex-1 relative">
             <AnimatePresence mode="wait">
               {isLoginView ? (
-                /* LOGIN VIEW (BOTTOM -> TOP SLIDE) */
+                /* LOGIN VIEW */
                 <motion.div 
                   key="login"
                   initial={{ y: "100%", opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: "-100%", opacity: 0 }}
                   transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                  className="p-8 flex flex-col gap-8 h-full"
+                  className="p-8 flex flex-col gap-6 h-full"
                 >
-                  <div className="space-y-6">
-                    <div className="relative group">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-primary to-success rounded-[30px] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                      <div className="relative bg-background rounded-[30px] p-2 shadow-neu-down overflow-hidden">
-                        {isModelLoading ? (
-                          <div className="aspect-video flex flex-col items-center justify-center gap-4 text-slate-400">
-                            <Loader2 className="animate-spin" size={32} />
-                            <span className="text-xs font-bold uppercase tracking-widest">Loading AI Models...</span>
-                          </div>
-                        ) : (
-                          <Webcam
-                            ref={webcamRef}
-                            screenshotFormat="image/jpeg"
-                            className="w-full aspect-video rounded-2xl object-cover scale-x-[-1]"
-                          />
-                        )}
-                      </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="text-center space-y-1">
+                      <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Verify Identity</h3>
+                      <p className="text-[10px] font-bold text-slate-300 uppercase">Draw your unique neural sequence</p>
                     </div>
                     
-                    <button 
-                      onClick={captureFace}
-                      disabled={isScanning || isModelLoading}
-                      className="w-full h-16 bg-background shadow-neu-up rounded-2xl flex items-center justify-center gap-3 text-primary font-bold active:shadow-neu-down transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
-                    >
-                      {isScanning ? <Loader2 className="animate-spin" /> : <Camera size={24} />}
-                      {isScanning ? 'RECOGNIZING...' : 'SCAN FACE TO LOGIN'}
-                    </button>
+                    <div className="relative">
+                      <AnimatePresence>
+                        {isSuccess && (
+                          <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm rounded-[40px]"
+                          >
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center text-success shadow-neu-up">
+                              <ShieldCheck size={48} />
+                            </motion.div>
+                            <span className="text-sm font-black uppercase tracking-widest text-success">Identity Verified</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      
+                      <PatternLock 
+                        onComplete={handlePatternComplete} 
+                        isError={isPatternError} 
+                        onReset={() => setIsPatternError(false)}
+                        size={280}
+                      />
+                    </div>
                   </div>
 
-                  <div className="relative py-4">
+                  <div className="relative py-2">
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-4 text-slate-400 font-bold tracking-widest">OR USE PASSCODE</span></div>
+                    <div className="relative flex justify-center text-[10px] uppercase"><span className="bg-background px-4 text-slate-400 font-bold tracking-widest">OR USE PASSCODE</span></div>
                   </div>
 
                   <form onSubmit={handlePasscodeAuth} className="space-y-6">
@@ -211,12 +168,12 @@ export const Login = () => {
                       icon={<Key size={18} />}
                       placeholder="••••"
                     />
-                    <NeuButton type="submit" variant="primary" className="w-full h-14" icon={<Lock size={20} />}>Unlock Dashboard</NeuButton>
+                    <NeuButton type="submit" variant="primary" className="w-full h-14" icon={<Lock size={20} />}>Unlock Agency Dashboard</NeuButton>
                   </form>
 
                   <div className="mt-auto text-center">
-                    <button onClick={() => setIsLoginView(false)} className="text-slate-400 text-sm font-bold hover:text-primary transition-colors underline-offset-4 hover:underline flex items-center justify-center gap-2 mx-auto">
-                      <UserPlus size={16} /> FIRST TIME? REGISTER AGENCY
+                    <button onClick={() => setIsLoginView(false)} className="text-slate-400 text-xs font-bold hover:text-primary transition-all flex items-center justify-center gap-2 mx-auto group">
+                      <UserPlus size={14} /> FIRST TIME? <span className="underline underline-offset-4 group-hover:no-underline">REGISTER NEW AGENCY</span>
                     </button>
                   </div>
                 </motion.div>
@@ -228,12 +185,12 @@ export const Login = () => {
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: "100%", opacity: 0 }}
                   transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                  className="p-8 flex flex-col gap-8 h-full"
+                  className="p-8 flex flex-col gap-6 h-full"
                 >
                   <div className="bg-primary/5 p-4 rounded-3xl text-primary flex items-start gap-4">
-                    <AlertCircle size={24} className="mt-1 flex-shrink-0" />
-                    <p className="text-sm font-medium leading-normal">
-                      Welcome to your personalized billing system. Please set up a security passcode and register your face for instant access.
+                    <Fingerprint size={24} className="mt-1 flex-shrink-0" />
+                    <p className="text-xs font-bold leading-normal uppercase tracking-wider">
+                      Create a unique 4-node pattern to secure your medical data.
                     </p>
                   </div>
 
@@ -246,35 +203,41 @@ export const Login = () => {
                       icon={<Key size={18} />}
                       placeholder="Set 4-6 digits"
                     />
-                    <NeuButton type="submit" variant="success" className="w-full h-14" icon={<UserPlus size={20} />}>Create Agency Profile</NeuButton>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                       Step 2: Draw Your Pattern <ChevronRight size={12} />
+                    </div>
+                    
+                    <div className="relative py-2">
+                       <AnimatePresence>
+                        {isSuccess && (
+                          <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm rounded-[40px]"
+                          >
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center text-success shadow-neu-up">
+                              <ShieldCheck size={32} />
+                            </motion.div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-success">Pattern Registered</span>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <div className="flex justify-center">
+                        <PatternLock 
+                          onComplete={handlePatternComplete}
+                          isError={isPatternError}
+                          onReset={() => setIsPatternError(false)}
+                          size={280}
+                        />
+                      </div>
+                    </div>
+
+                    <NeuButton type="submit" variant="success" className="w-full h-14" icon={<ShieldCheck size={20} />}>Finalise Agency Profile</NeuButton>
                   </form>
 
-                  <div className="relative py-4">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-4 text-slate-400 font-bold tracking-widest">Recommended</span></div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="aspect-video bg-background rounded-[30px] p-2 shadow-neu-down overflow-hidden">
-                      <Webcam
-                        ref={webcamRef}
-                        screenshotFormat="image/jpeg"
-                        className="w-full aspect-video rounded-2xl object-cover scale-x-[-1]"
-                      />
-                    </div>
-                    <button 
-                      onClick={captureFace}
-                      disabled={isScanning || !passcode}
-                      className="w-full h-16 bg-background shadow-neu-up border-2 border-primary/20 rounded-2xl flex items-center justify-center gap-3 text-primary font-bold active:shadow-neu-down transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
-                    >
-                      {isScanning ? <Loader2 className="animate-spin" /> : <Camera size={24} />}
-                      {isScanning ? 'CAPTURING...' : 'REGISTER FACE ID'}
-                    </button>
-                  </div>
-
                   <div className="mt-auto text-center">
-                    <button onClick={() => setIsLoginView(true)} className="text-slate-400 text-sm font-bold hover:text-primary transition-colors underline-offset-4 hover:underline flex items-center justify-center gap-2 mx-auto">
-                      <ShieldCheck size={16} /> ALREADY REGISTERED? LOGIN
+                    <button onClick={() => setIsLoginView(true)} className="text-slate-400 text-xs font-bold hover:text-primary transition-all flex items-center justify-center gap-2 mx-auto group">
+                      <Lock size={14} /> ALREADY REGISTERED? <span className="underline underline-offset-4 group-hover:no-underline">LOGIN TO AGENCY</span>
                     </button>
                   </div>
                 </motion.div>
@@ -286,11 +249,11 @@ export const Login = () => {
       
       {/* Footer Info */}
       <div className="mt-8 relative z-20 flex gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-        <span>Biometric Protected</span>
+        <span>Neural Protected</span>
         <span className="w-1 h-1 bg-slate-300 rounded-full self-center"></span>
-        <span>Local Data Only</span>
+        <span>Local Storage</span>
         <span className="w-1 h-1 bg-slate-300 rounded-full self-center"></span>
-        <span>v2.0 Security Core</span>
+        <span>v3.0 Security Core</span>
       </div>
     </div>
   );

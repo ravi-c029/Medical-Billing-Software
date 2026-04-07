@@ -3,14 +3,14 @@ import { persist } from 'zustand/middleware';
 
 interface AuthState {
   passcode: string | null;
-  faceDescriptor: number[] | null; // Face data stored as an array of numbers
+  pattern: number[] | null; // Sequential array of node indices (0-8)
   isAuthenticated: boolean;
   isRegistered: boolean;
   
   // Actions
-  register: (passcode: string, faceDescriptor: number[] | null) => void;
+  register: (passcode: string, pattern: number[] | null) => void;
   login: (passcode: string) => boolean;
-  loginWithFace: (descriptor: number[]) => boolean;
+  loginWithPattern: (inputPattern: number[]) => boolean;
   logout: () => void;
 }
 
@@ -18,15 +18,15 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       passcode: null,
-      faceDescriptor: null,
+      pattern: null,
       isAuthenticated: false,
       isRegistered: false,
 
-      register: (passcode, faceDescriptor) => set({
+      register: (passcode, pattern) => set({
         passcode,
-        faceDescriptor,
+        pattern,
         isRegistered: true,
-        isAuthenticated: true // Log them in immediately after register
+        isAuthenticated: true
       }),
 
       login: (passcode) => {
@@ -38,17 +38,17 @@ export const useAuthStore = create<AuthState>()(
         return false;
       },
 
-      loginWithFace: (descriptor) => {
+      loginWithPattern: (inputPattern) => {
         const state = get();
-        if (!state.faceDescriptor) return false;
+        if (!state.pattern) return false;
         
-        // Simple Euclidean Distance for face matching
-        const distance = Math.sqrt(
-          descriptor.reduce((sum, val, i) => sum + Math.pow(val - (state.faceDescriptor![i] || 0), 2), 0)
-        );
+        // Match lengths first
+        if (inputPattern.length !== state.pattern.length) return false;
+        
+        // Check Every element in sequence
+        const isMatch = inputPattern.every((node, i) => node === state.pattern![i]);
 
-        // Threshold of 0.40 - 0.45 is typical for good matching
-        if (distance < 0.45) {
+        if (isMatch) {
           set({ isAuthenticated: true });
           return true;
         }
