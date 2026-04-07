@@ -7,6 +7,7 @@ import { InvoicePrint } from '../components/invoice/InvoicePrint';
 import { useSettingsStore } from '../store/settingsStore';
 import { useInvoiceStore } from '../store/invoiceStore';
 import { format } from 'date-fns';
+import { formatDateToDisplay } from '../utils/dateUtils';
 import { Printer, Save, Trash2, Plus } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { computeLineAmount, computeSubTotal, computeTax, computeGrandTotal } from '../utils/calculations';
@@ -103,7 +104,7 @@ export const NewInvoice = () => {
     return {
       id: Date.now().toString(),
       invoiceNo,
-      date: invoiceDate,
+      date: formatDateToDisplay(invoiceDate), // Format to dd-MM-yyyy for storage
       customerName,
       address,
       mobile,

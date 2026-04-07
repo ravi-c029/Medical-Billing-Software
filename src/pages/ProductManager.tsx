@@ -87,15 +87,13 @@ export const ProductManager = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-            <NeuInput 
-              placeholder="Search products..." 
-              className="pl-9 w-full sm:w-64 text-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <NeuInput 
+            placeholder="Search products..." 
+            className="w-full sm:w-64 text-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            icon={<Search size={16} />}
+          />
           <NeuButton variant="primary" icon={<Plus size={16} />} onClick={() => handleOpenModal()} className="whitespace-nowrap">
             Add Product
           </NeuButton>

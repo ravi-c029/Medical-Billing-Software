@@ -6,12 +6,15 @@ import { NewInvoice } from './pages/NewInvoice';
 import { InvoiceHistory } from './pages/InvoiceHistory';
 import { ProductManager } from './pages/ProductManager';
 import { Settings } from './pages/Settings';
+import { Login } from './pages/Login';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="new-invoice" element={<NewInvoice />} />
           <Route path="history" element={<InvoiceHistory />} />

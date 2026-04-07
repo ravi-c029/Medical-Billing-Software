@@ -8,6 +8,7 @@ import { Modal } from '../components/ui/Modal';
 import { InvoicePrint } from '../components/invoice/InvoicePrint';
 import { Search, Eye, Printer, Trash2, FileSpreadsheet, Calendar } from 'lucide-react';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { parseInvoiceDate, formatDateToDisplay } from '../utils/dateUtils';
 import { useReactToPrint } from 'react-to-print';
 import type { Invoice } from '../types';
 
@@ -39,7 +40,7 @@ export const InvoiceHistory = () => {
       
       let matchDate = true;
       if (startDate || endDate) {
-        const invDate = new Date(inv.date);
+        const invDate = parseInvoiceDate(inv.date);
         const start = startDate ? startOfDay(new Date(startDate)) : new Date(0);
         const end = endDate ? endOfDay(new Date(endDate)) : new Date(8640000000000000);
         matchDate = isWithinInterval(invDate, { start, end });
@@ -77,7 +78,7 @@ export const InvoiceHistory = () => {
     const headers = ['Inv No', 'Date', 'Customer', 'Mobile', 'SubTotal', 'CGST', 'SGST', 'GrandTotal', 'Payment', 'Status'];
     const rows = filteredInvoices.map(inv => [
       `#${inv.invoiceNo}`,
-      inv.date,
+      formatDateToDisplay(inv.date),
       inv.customerName,
       inv.mobile,
       inv.subTotal,
@@ -171,7 +172,7 @@ export const InvoiceHistory = () => {
                   style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                 >
                   <td className="p-4 font-bold text-slate-700">#{inv.invoiceNo}</td>
-                  <td className="p-4 text-slate-600">{format(new Date(inv.date), 'dd MMM yyyy')}</td>
+                  <td className="p-4 text-slate-600 font-medium">{formatDateToDisplay(inv.date)}</td>
                   <td className="p-4 font-medium text-slate-800">{inv.customerName}</td>
                   <td className="p-4 text-center text-slate-600 font-semibold">{inv.items.length}</td>
                   <td className="p-4 text-right font-bold text-slate-800">₹{inv.grandTotal.toLocaleString()}</td>

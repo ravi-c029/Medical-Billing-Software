@@ -1,12 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, History, PackageSearch, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, History, PackageSearch, Settings, LogOut } from 'lucide-react';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useUIStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
 
 export const Sidebar: React.FC = () => {
   const { settings } = useSettingsStore();
   const { isSidebarOpen, closeSidebar } = useUIStore();
+  const { logout } = useAuthStore();
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
@@ -50,8 +52,15 @@ export const Sidebar: React.FC = () => {
       </nav>
 
       <div className="mt-auto pt-6 border-t border-slate-300">
-        <p className="text-xs text-center text-slate-500">
-          v2.0.0 &copy; 2026
+        <button 
+          onClick={() => logout()}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-neu-btn font-bold text-danger hover:shadow-neu-down transition-all duration-300"
+        >
+          <LogOut size={20} />
+          Lock Agency
+        </button>
+        <p className="text-[10px] text-center text-slate-400 mt-4 font-bold uppercase tracking-widest">
+          v2.0.0 &copy; 2026 Ravi Agency
         </p>
       </div>
     </aside>

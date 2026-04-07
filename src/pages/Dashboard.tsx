@@ -5,6 +5,7 @@ import { StatCard } from '../components/dashboard/StatCard';
 import { RevenueChart } from '../components/dashboard/RevenueChart';
 import { NeuCard } from '../components/ui/NeuCard';
 import { format, isToday, eachMonthOfInterval, isSameMonth } from 'date-fns';
+import { parseInvoiceDate, formatDateToDisplay } from '../utils/dateUtils';
 import { IndianRupee, FileText, Package, Clock } from 'lucide-react';
 
 export const Dashboard = () => {
@@ -13,7 +14,7 @@ export const Dashboard = () => {
 
   const todayRevenue = useMemo(() => {
     return invoices
-      .filter((inv) => isToday(new Date(inv.date)))
+      .filter((inv) => isToday(parseInvoiceDate(inv.date)))
       .reduce((sum, inv) => sum + inv.grandTotal, 0);
   }, [invoices]);
 
@@ -45,7 +46,7 @@ export const Dashboard = () => {
     return months.map(month => {
       const monthName = format(month, 'MMM');
       const revenue = invoices
-        .filter(inv => isSameMonth(new Date(inv.date), month))
+        .filter(inv => isSameMonth(parseInvoiceDate(inv.date), month))
         .reduce((sum, inv) => sum + inv.grandTotal, 0);
       return { name: monthName, revenue };
     });
@@ -215,7 +216,7 @@ export const Dashboard = () => {
               {recentInvoices.map((inv) => (
                 <tr key={inv.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
                   <td className="py-4 font-semibold text-slate-700">#{inv.invoiceNo}</td>
-                  <td className="py-4 text-slate-600">{format(new Date(inv.date), 'dd MMM yyyy')}</td>
+                  <td className="py-4 text-slate-600 font-medium">{formatDateToDisplay(inv.date)}</td>
                   <td className="py-4 text-slate-700">{inv.customerName}</td>
                   <td className="py-4 font-bold text-slate-800">₹{inv.grandTotal.toLocaleString()}</td>
                   <td className="py-4">
