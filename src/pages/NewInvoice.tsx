@@ -6,9 +6,10 @@ import { ProductSearch } from '../components/invoice/ProductSearch';
 import { InvoicePrint } from '../components/invoice/InvoicePrint';
 import { useSettingsStore } from '../store/settingsStore';
 import { useInvoiceStore } from '../store/invoiceStore';
+import { useCustomerStore } from '../store/customerStore';
 import { format } from 'date-fns';
 import { formatDateToDisplay } from '../utils/dateUtils';
-import { Printer, Save, Trash2, Plus } from 'lucide-react';
+import { Printer, Save, Trash2, Plus, UserCheck, Cloud, Loader2 } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { computeLineAmount, computeSubTotal, computeTax, computeGrandTotal } from '../utils/calculations';
 import { numberToIndianWords } from '../utils/numberToWords';
@@ -16,7 +17,8 @@ import type { Invoice, InvoiceLineItem, Medicine } from '../types';
 
 export const NewInvoice = () => {
   const { settings, incrementInvoiceCounter } = useSettingsStore();
-  const { addInvoice } = useInvoiceStore();
+  const { addInvoice, syncing } = useInvoiceStore();
+  const { customers, upsertCustomer } = useCustomerStore();
   const printRef = useRef<HTMLDivElement>(null);
 
   // Form State
@@ -26,6 +28,11 @@ export const NewInvoice = () => {
   const [customerDlNo, setCustomerDlNo] = useState('');
   const [paymentMode, setPaymentMode] = useState<Invoice['paymentMode']>('Cash');
   const [status, setStatus] = useState<Invoice['status']>('paid');
+
+  // Autocomplete state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [customerAutoFilled, setCustomerAutoFilled] = useState(false);
+  const nameInputRef = useRef<HTMLDivElement>(null);
   
   const [invoiceDate, setInvoiceDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const invoiceNo = settings.invoiceCounter;
@@ -43,6 +50,42 @@ export const NewInvoice = () => {
     Array.from({ length: 5 }, () => ({ ...emptyLine, id: Date.now().toString() + Math.random() }))
   );
 
+  // Filter customers for autocomplete suggestions
+  const suggestions = customerName.trim().length >= 1
+    ? customers
+        .filter(c => c.name.toLowerCase().includes(customerName.toLowerCase()))
+        .sort((a, b) => new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime())
+        .slice(0, 6)
+    : [];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (nameInputRef.current && !nameInputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Clear autofill indicator when name is cleared
+  useEffect(() => {
+    if (!customerName.trim()) {
+      setCustomerAutoFilled(false);
+    }
+  }, [customerName]);
+
+  // Handle selecting a customer from the dropdown
+  const handleSelectCustomer = (customer: typeof customers[0]) => {
+    setCustomerName(customer.name);
+    setAddress(customer.address);
+    setMobile(customer.mobile);
+    setCustomerDlNo(customer.dlNo);
+    setCustomerAutoFilled(true);
+    setShowSuggestions(false);
+  };
+
   // Derived Totals
   const subTotal = computeSubTotal(items);
   const cgstAmount = computeTax(subTotal, Number(cgstPercent));
@@ -55,7 +98,6 @@ export const NewInvoice = () => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     
-    // Auto calculate amount if qty or rate changes
     if (field === 'qty' || field === 'rate') {
       newItems[index].amount = computeLineAmount(Number(newItems[index].qty) || 0, Number(newItems[index].rate) || 0);
     }
@@ -69,10 +111,10 @@ export const NewInvoice = () => {
       productName: medicine.name,
       hsn: medicine.hsn,
       mrp: medicine.mrp,
-      rate: medicine.mrp, // Default rate to MRP
+      rate: medicine.mrp,
       mfdBy: medicine.mfdBy,
       taxPercent: medicine.taxPercent,
-      qty: 1, // Default qty to 1 when selected to immediately show line amt
+      qty: 1,
       amount: medicine.mrp,
     };
     setItems(newItems);
@@ -86,7 +128,6 @@ export const NewInvoice = () => {
     if (items.length > 5) {
       setItems(items.filter((_, i) => i !== index));
     } else {
-      // Clear instead of remove if at minimum 5
       const newItems = [...items];
       newItems[index] = { ...emptyLine, id: Date.now().toString() + Math.random() };
       setItems(newItems);
@@ -104,7 +145,7 @@ export const NewInvoice = () => {
     return {
       id: Date.now().toString(),
       invoiceNo,
-      date: formatDateToDisplay(invoiceDate), // Format to dd-MM-yyyy for storage
+      date: formatDateToDisplay(invoiceDate),
       customerName,
       address,
       mobile,
@@ -148,10 +189,23 @@ export const NewInvoice = () => {
 
   const clearForm = () => {
     setCustomerName(''); setAddress(''); setMobile(''); setCustomerDlNo('');
+    setCustomerAutoFilled(false);
     setItems(Array.from({ length: 5 }, () => ({ ...emptyLine, id: Date.now().toString() + Math.random() })));
   };
 
-  const saveInvoice = () => {
+  // Save customer to store after successful invoice save
+  const saveCustomerIfNeeded = () => {
+    if (customerName.trim()) {
+      upsertCustomer({
+        name: customerName.trim(),
+        mobile: mobile.trim(),
+        address: address.trim(),
+        dlNo: customerDlNo.trim(),
+      });
+    }
+  };
+
+  const saveInvoice = async () => {
     if (!customerName) {
       alert("Please enter a customer name.");
       return;
@@ -161,13 +215,14 @@ export const NewInvoice = () => {
       alert("Please add at least one product with quantity > 0");
       return;
     }
-    addInvoice(inv);
+    saveCustomerIfNeeded();
+    await addInvoice(inv);
     incrementInvoiceCounter();
-    alert("Invoice saved to history!");
+    alert("Invoice saved & synced to cloud!");
     clearForm();
   };
 
-  const handleSaveAndPrint = () => {
+  const handleSaveAndPrint = async () => {
     if (!customerName) {
       alert("Please enter a customer name.");
       return;
@@ -177,7 +232,8 @@ export const NewInvoice = () => {
       alert("Please add at least one product with quantity > 0");
       return;
     }
-    addInvoice(inv);
+    saveCustomerIfNeeded();
+    await addInvoice(inv);
     incrementInvoiceCounter();
     setPrintData(inv);
   };
@@ -190,7 +246,57 @@ export const NewInvoice = () => {
         <NeuCard>
           <h3 className="text-lg font-bold text-slate-700 mb-4 border-b border-white/20 pb-2">Customer Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <NeuInput label="Customer Name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="col-span-1 sm:col-span-2" placeholder="Required" />
+            
+            {/* Customer Name with Autocomplete */}
+            <div className="col-span-1 sm:col-span-2 relative" ref={nameInputRef}>
+              <div className="relative">
+                <NeuInput
+                  label={
+                    <span className="flex items-center gap-2">
+                      Customer Name
+                      {customerAutoFilled && (
+                        <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold">
+                          <UserCheck size={12} /> Auto-filled
+                        </span>
+                      )}
+                    </span>
+                  }
+                  value={customerName}
+                  onChange={(e) => {
+                    setCustomerName(e.target.value);
+                    setCustomerAutoFilled(false);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="Type customer name..."
+                />
+              </div>
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+                  {suggestions.map((c) => (
+                    <button
+                      key={c.id}
+                      className="w-full text-left px-4 py-3 hover:bg-primary/5 transition-colors border-b border-slate-100 last:border-0 flex flex-col gap-0.5"
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Prevent blur before click
+                        handleSelectCustomer(c);
+                      }}
+                    >
+                      <span className="font-semibold text-slate-800 text-sm">{c.name}</span>
+                      <span className="text-xs text-slate-500">
+                        {[c.mobile, c.dlNo, c.address].filter(Boolean).join(' · ')}
+                      </span>
+                    </button>
+                  ))}
+                  <div className="px-4 py-2 bg-slate-50 text-xs text-slate-400">
+                    {suggestions.length} saved customer(s) found
+                  </div>
+                </div>
+              )}
+            </div>
+
             <NeuInput label="Address" value={address} onChange={(e) => setAddress(e.target.value)} className="col-span-1 sm:col-span-2" />
             <NeuInput label="Mobile No" value={mobile} onChange={(e) => setMobile(e.target.value)} maxLength={10} />
             <NeuInput label="Customer DL No" value={customerDlNo} onChange={(e) => setCustomerDlNo(e.target.value)} />
@@ -218,6 +324,18 @@ export const NewInvoice = () => {
               <span className="font-bold text-xl text-primary">#{invoiceNo}</span>
             </div>
             <NeuInput label="Date" type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+
+            {/* Cloud sync indicator */}
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              syncing 
+                ? 'bg-amber-50 text-amber-700' 
+                : 'bg-emerald-50 text-emerald-700'
+            }`}>
+              {syncing 
+                ? <><Loader2 size={14} className="animate-spin" /> Syncing to cloud...</> 
+                : <><Cloud size={14} /> Ready to save & sync</>
+              }
+            </div>
           </div>
         </NeuCard>
       </div>
@@ -326,13 +444,17 @@ export const NewInvoice = () => {
       {/* Action Buttons */}
       <div className="flex justify-end gap-6 mt-8">
         <NeuButton onClick={clearForm} icon={<Trash2 size={18} />}>Clear Form</NeuButton>
-        <NeuButton variant="primary" icon={<Printer size={18} />} onClick={handleSaveAndPrint}>Save & Print</NeuButton>
-        <NeuButton variant="success" icon={<Save size={18} />} onClick={saveInvoice}>Save Invoice</NeuButton>
+        <NeuButton variant="primary" icon={syncing ? <Loader2 size={18} className="animate-spin" /> : <Printer size={18} />} onClick={handleSaveAndPrint} disabled={syncing}>
+          Save & Print
+        </NeuButton>
+        <NeuButton variant="success" icon={syncing ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} onClick={saveInvoice} disabled={syncing}>
+          {syncing ? 'Syncing...' : 'Save Invoice'}
+        </NeuButton>
       </div>
 
       <div className="hidden">
         <div ref={printRef}>
-          <InvoicePrint invoice={printData || buildInvoiceObject()} settings={settings} />
+          <InvoicePrint invoice={printData || buildInvoiceObject()} settings={settings} variant="print" />
         </div>
       </div>
 

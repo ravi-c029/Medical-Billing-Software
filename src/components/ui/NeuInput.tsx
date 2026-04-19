@@ -1,7 +1,7 @@
 import React, { forwardRef, type ReactNode } from 'react';
 
 interface NeuInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
   icon?: ReactNode;
 }

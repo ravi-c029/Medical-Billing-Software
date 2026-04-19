@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useInvoiceStore } from '../store/invoiceStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { NeuCard } from '../components/ui/NeuCard';
@@ -6,14 +6,14 @@ import { NeuInput } from '../components/ui/NeuInput';
 import { NeuButton } from '../components/ui/NeuButton';
 import { Modal } from '../components/ui/Modal';
 import { InvoicePrint } from '../components/invoice/InvoicePrint';
-import { Search, Eye, Printer, Trash2, FileSpreadsheet, Calendar } from 'lucide-react';
+import { Search, Eye, Printer, Trash2, FileSpreadsheet, Calendar, Cloud, CloudOff } from 'lucide-react';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { parseInvoiceDate, formatDateToDisplay } from '../utils/dateUtils';
 import { useReactToPrint } from 'react-to-print';
 import type { Invoice } from '../types';
 
 export const InvoiceHistory = () => {
-  const { invoices, deleteInvoice } = useInvoiceStore();
+  const { invoices, deleteInvoice, syncError, initFirestoreSync } = useInvoiceStore();
   const { settings } = useSettingsStore();
   
   const [search, setSearch] = useState('');
@@ -25,6 +25,12 @@ export const InvoiceHistory = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const printRef = useRef<HTMLDivElement>(null);
+
+  // Start Firestore real-time listener
+  useEffect(() => {
+    const unsub = initFirestoreSync();
+    return () => unsub();
+  }, []);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef as unknown as React.RefObject<Element>,
@@ -57,6 +63,11 @@ export const InvoiceHistory = () => {
   const handleOpenView = (inv: Invoice) => {
     setSelectedInvoice(inv);
     setIsViewModalOpen(true);
+  };
+
+  const handleCloseView = () => {
+    setIsViewModalOpen(false);
+    setTimeout(() => setSelectedInvoice(null), 300); // let modal animate out first
   };
 
   const handleQuickPrint = (inv: Invoice) => {
@@ -107,7 +118,18 @@ export const InvoiceHistory = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Invoice History</h1>
-          <p className="text-slate-500 text-sm mt-1">View, search, and manage past invoices.</p>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-slate-500 text-sm">View, search, and manage past invoices.</p>
+            {syncError ? (
+              <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+                <CloudOff size={12} /> {syncError}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                <Cloud size={12} /> Synced to Cloud
+              </span>
+            )}
+          </div>
         </div>
         <NeuButton icon={<FileSpreadsheet size={18} />} onClick={handleExportCSV} className="w-full md:w-auto">
           Export History (.CSV)
@@ -218,23 +240,26 @@ export const InvoiceHistory = () => {
         <span className="font-bold text-xl px-4 text-success">Total Revenue: ₹{totalRevenue.toLocaleString()}</span>
       </div>
 
+      {/* Hidden print div — uses default 'print' variant (hidden on screen) */}
       <div className="hidden">
         {selectedInvoice && (
           <div ref={printRef}>
-            <InvoicePrint invoice={selectedInvoice} settings={settings} />
+            <InvoicePrint invoice={selectedInvoice} settings={settings} variant="print" />
           </div>
         )}
       </div>
 
-      <Modal isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} title={`Invoice #${selectedInvoice?.invoiceNo}`}>
+      {/* View Modal — uses 'view' variant (fully visible) */}
+      <Modal isOpen={isViewModalOpen} onClose={handleCloseView} title={`Invoice #${selectedInvoice?.invoiceNo} — ${selectedInvoice?.customerName || ''}`}>
         {selectedInvoice && (
-          <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-            <div className="scale-75 origin-top scale-y-75 transform-gpu mb-[-25%]">
-              <InvoicePrint invoice={selectedInvoice} settings={settings} />
+          <div className="flex flex-col gap-4">
+            {/* Full receipt preview — no height cap, scrolls with modal backdrop */}
+            <div className="border border-slate-200 rounded-lg bg-white overflow-hidden">
+              <InvoicePrint invoice={selectedInvoice} settings={settings} variant="view" />
             </div>
-            
-            <div className="flex justify-end gap-4 mt-6 sticky bottom-0 bg-background/90 p-4 border-t border-slate-200">
-              <NeuButton onClick={() => setIsViewModalOpen(false)}>Close</NeuButton>
+
+            <div className="flex justify-end gap-4 pt-2 border-t border-slate-200">
+              <NeuButton onClick={handleCloseView}>Close</NeuButton>
               <NeuButton variant="primary" icon={<Printer size={16} />} onClick={() => handlePrint()}>
                 Print Invoice
               </NeuButton>
