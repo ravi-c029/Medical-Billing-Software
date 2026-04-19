@@ -2,12 +2,12 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBe4MmSEYjcY-c2xJSg7cLrPVV7oMVUKE4",
+  apiKey: "xyz",
   authDomain: "medical-billing-software.firebaseapp.com",
   projectId: "medical-billing-software",
-  storageBucket: "medical-billing-software.firebasestorage.app",
-  messagingSenderId: "567229238703",
-  appId: "1:567229238703:web:af282ea784aaac91a1b35a"
+  storageBucket: "medical-billing-software",
+  messagingSenderId: "hey hello",
+  appId: "hey"
 };
 
 const app = initializeApp(firebaseConfig);
