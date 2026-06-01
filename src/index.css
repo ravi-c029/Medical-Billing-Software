@@ -68,20 +68,97 @@
 @media print {
   @page {
     size: A4;
-    margin: 10mm;
+    margin: 0;
   }
+  html,
   body {
     background: white;
     font-family: 'Playfair Display', serif;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 !important;
+    overflow: hidden;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+  body * {
+    visibility: hidden;
   }
   .no-print {
     display: none !important;
   }
   .print-only {
     display: block !important;
-    min-height: auto !important;
-    page-break-inside: avoid;
+    visibility: visible;
+  }
+  .print-only,
+  .print-only * {
+    visibility: visible;
+  }
+  .invoice-print-page {
+    box-sizing: border-box;
+    width: 210mm !important;
+    height: 297mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 12mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid-page !important;
+    break-before: avoid-page !important;
+    break-inside: avoid-page !important;
+    position: relative;
+  }
+  .invoice-print-sheet {
+    --print-scale: 1;
+    box-sizing: border-box;
+    position: absolute;
+    top: 16mm;
+    left: 12mm;
+    width: calc(186mm / var(--print-scale)) !important;
+    height: auto !important;
+    max-width: none !important;
+    transform: scale(var(--print-scale));
+    transform-origin: top left;
+    overflow: visible !important;
+    font-size: 12.5px;
+    line-height: 1.22;
+  }
+  .invoice-print-sheet h1 {
+    font-size: 22px !important;
+    line-height: 1.15;
+  }
+  .invoice-print-sheet h2 {
+    font-size: 14px !important;
+    margin-top: 6px !important;
+    padding: 2px 24px !important;
+  }
+  .invoice-print-sheet table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 10.5px !important;
+    height: auto;
+  }
+  .invoice-print-sheet th,
+  .invoice-print-sheet td {
+    padding: 4px 4px !important;
+    overflow-wrap: anywhere;
+    line-height: 1.18;
+  }
+  .invoice-print-sheet .invoice-items-wrap {
+    flex: 0 0 auto;
+    min-height: 58mm;
+    display: block;
+  }
+  .invoice-print-sheet .invoice-footer {
+    margin-top: 5mm !important;
+  }
+  .invoice-print-sheet .overflow-x-auto {
+    overflow: visible !important;
+  }
+  .invoice-print-sheet img {
+    max-height: 40px !important;
   }
 }

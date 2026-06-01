@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 import type { Invoice, Settings } from '../../types';
 import { numberToIndianWords } from '../../utils/numberToWords';
 
@@ -17,16 +17,23 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
     if (!invoice) return null;
 
     const isView = variant === 'view';
+    const visibleRows = Math.max(invoice.items.length, 8);
+    const printScale = isView
+      ? 1
+      : Math.min(1, 260 / (visibleRows * 5.8 + 130));
 
-    return (
+    const invoiceContent = (
       <div
-        ref={ref}
-        className={`bg-white text-black flex flex-col ${
+        ref={isView ? ref : undefined}
+        className={`invoice-print-sheet bg-white text-black flex flex-col ${
           isView 
             ? 'w-full p-5'
-            : 'hidden print-only w-[210mm] max-w-full mx-auto p-4'
+            : 'w-full p-0'
         }`}
-        style={{ fontFamily: "'Playfair Display', serif" }}
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          '--print-scale': printScale,
+        } as CSSProperties}
       >
         {/* HEADER */}
         <div className="text-center mb-4 border-b-2 border-black pb-2">
@@ -79,7 +86,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* ITEMS TABLE */}
-        <div className="overflow-x-auto w-full mb-4">
+        <div className="invoice-items-wrap overflow-x-auto w-full mb-4">
         <table className="w-full text-left border border-black text-sm" style={{ minWidth: isView ? '600px' : undefined }}>
           <thead>
             <tr className="border-b border-black">
@@ -180,7 +187,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* FOOTER / TERMS */}
-        <div className="flex justify-between border border-black p-4 text-sm mt-auto">
+        <div className="invoice-footer flex justify-between border border-black p-4 text-sm mt-auto">
           <div className="w-1/2 pr-4 border-r border-black">
             <p className="font-bold mb-2">Terms & Conditions:</p>
             <p className="italic">
@@ -204,6 +211,14 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
             </p>
           </div>
         </div>
+      </div>
+    );
+
+    if (isView) return invoiceContent;
+
+    return (
+      <div ref={ref} className="hidden print-only invoice-print-page">
+        {invoiceContent}
       </div>
     );
   }
