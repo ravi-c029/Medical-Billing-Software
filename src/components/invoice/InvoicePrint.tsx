@@ -17,10 +17,10 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
     if (!invoice) return null;
 
     const isView = variant === 'view';
-    const visibleRows = Math.max(invoice.items.length, 8);
+    const visibleRows = Math.max(invoice.items.length, 13);
     const printScale = isView
       ? 1
-      : Math.min(1, 260 / (visibleRows * 5.8 + 130));
+      : Math.min(1, 252 / (visibleRows * 7.2 + 145));
 
     const invoiceContent = (
       <div
@@ -134,9 +134,9 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
               </tr>
             ))}
             {/* Fill empty rows */}
-            {Array.from({ length: Math.max(0, 8 - invoice.items.length) }).map(
+            {Array.from({ length: Math.max(0, 13 - invoice.items.length) }).map(
               (_, i) => (
-                <tr key={`empty-${i}`}>
+                <tr key={`empty-${i}`} className="invoice-empty-row">
                   <td className="p-2 border-r border-black text-transparent">
                     .
                   </td>
@@ -158,7 +158,7 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
         </div>
 
         {/* TOTALS & WORDS */}
-        <div className="flex border border-black mb-4">
+        <div className="invoice-totals flex border border-black mb-4">
           <div className="w-2/3 p-4 border-r border-black flex flex-col justify-center">
             <p className="text-sm font-semibold mb-2">Amount in Words:</p>
             <p className="text-lg font-bold italic">
