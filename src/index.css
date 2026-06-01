@@ -147,6 +147,34 @@
     overflow-wrap: anywhere;
     line-height: 1.18;
   }
+  .invoice-print-sheet .invoice-product-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    overflow-wrap: normal;
+    word-break: normal;
+    font-size: 10px !important;
+    width: 34mm;
+  }
+  .invoice-print-sheet .invoice-col-sl {
+    width: 7mm;
+  }
+  .invoice-print-sheet .invoice-col-hsn,
+  .invoice-print-sheet .invoice-col-batch,
+  .invoice-print-sheet .invoice-col-exp {
+    width: 15mm;
+  }
+  .invoice-print-sheet .invoice-col-mfd {
+    width: 18mm;
+  }
+  .invoice-print-sheet .invoice-col-qty,
+  .invoice-print-sheet .invoice-col-tax {
+    width: 10mm;
+  }
+  .invoice-print-sheet .invoice-col-money,
+  .invoice-print-sheet .invoice-col-amount {
+    width: 15mm;
+  }
   .invoice-print-sheet .invoice-items-wrap {
     flex: 0 0 auto;
     min-height: 0;

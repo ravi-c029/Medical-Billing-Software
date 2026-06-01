@@ -90,45 +90,45 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
         <table className="w-full text-left border border-black text-sm" style={{ minWidth: isView ? '600px' : undefined }}>
           <thead>
             <tr className="border-b border-black">
-              <th className="p-2 border-r border-black w-10">Sl</th>
-              <th className="p-2 border-r border-black">Product Name</th>
-              <th className="p-2 border-r border-black">HSN</th>
-              <th className="p-2 border-r border-black">Batch</th>
-              <th className="p-2 border-r border-black">Exp</th>
-              <th className="p-2 border-r border-black">Mfd By</th>
-              <th className="p-2 border-r border-black text-right">Qty</th>
-              <th className="p-2 border-r border-black text-right">MRP</th>
-              <th className="p-2 border-r border-black text-right">Rate</th>
-              <th className="p-2 border-r border-black text-right">Tax%</th>
-              <th className="p-2 text-right">Amount</th>
+              <th className="invoice-col-sl p-2 border-r border-black w-10">Sl</th>
+              <th className="invoice-product-name p-2 border-r border-black">Product Name</th>
+              <th className="invoice-col-hsn p-2 border-r border-black">HSN</th>
+              <th className="invoice-col-batch p-2 border-r border-black">Batch</th>
+              <th className="invoice-col-exp p-2 border-r border-black">Exp</th>
+              <th className="invoice-col-mfd p-2 border-r border-black">Mfd By</th>
+              <th className="invoice-col-qty p-2 border-r border-black text-right">Qty</th>
+              <th className="invoice-col-money p-2 border-r border-black text-right">MRP</th>
+              <th className="invoice-col-money p-2 border-r border-black text-right">Rate</th>
+              <th className="invoice-col-tax p-2 border-r border-black text-right">Tax%</th>
+              <th className="invoice-col-amount p-2 text-right">Amount</th>
             </tr>
           </thead>
           <tbody>
             {invoice.items.map((item, index) => (
               <tr key={index} className="border-b border-black/20">
-                <td className="p-2 border-r border-black">{index + 1}</td>
-                <td className="p-2 border-r border-black font-semibold">
+                <td className="invoice-col-sl p-2 border-r border-black">{index + 1}</td>
+                <td className="invoice-product-name p-2 border-r border-black font-semibold">
                   {item.productName}
                 </td>
-                <td className="p-2 border-r border-black">{item.hsn}</td>
-                <td className="p-2 border-r border-black">{item.batch}</td>
-                <td className="p-2 border-r border-black">{item.exp}</td>
-                <td className="p-2 border-r border-black text-xs">
+                <td className="invoice-col-hsn p-2 border-r border-black">{item.hsn}</td>
+                <td className="invoice-col-batch p-2 border-r border-black">{item.batch}</td>
+                <td className="invoice-col-exp p-2 border-r border-black">{item.exp}</td>
+                <td className="invoice-col-mfd p-2 border-r border-black text-xs">
                   {item.mfdBy}
                 </td>
-                <td className="p-2 border-r border-black text-right">
+                <td className="invoice-col-qty p-2 border-r border-black text-right">
                   {item.qty}
                 </td>
-                <td className="p-2 border-r border-black text-right">
+                <td className="invoice-col-money p-2 border-r border-black text-right">
                   {item.mrp.toFixed(2)}
                 </td>
-                <td className="p-2 border-r border-black text-right">
+                <td className="invoice-col-money p-2 border-r border-black text-right">
                   {item.rate.toFixed(2)}
                 </td>
-                <td className="p-2 border-r border-black text-right">
+                <td className="invoice-col-tax p-2 border-r border-black text-right">
                   {item.taxPercent}
                 </td>
-                <td className="p-2 text-right font-semibold">
+                <td className="invoice-col-amount p-2 text-right font-semibold">
                   {item.amount.toFixed(2)}
                 </td>
               </tr>
@@ -137,19 +137,19 @@ export const InvoicePrint = forwardRef<HTMLDivElement, InvoicePrintProps>(
             {Array.from({ length: Math.max(0, 13 - invoice.items.length) }).map(
               (_, i) => (
                 <tr key={`empty-${i}`} className="invoice-empty-row">
-                  <td className="p-2 border-r border-black text-transparent">
+                  <td className="invoice-col-sl p-2 border-r border-black text-transparent">
                     .
                   </td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2"></td>
+                  <td className="invoice-product-name p-2 border-r border-black"></td>
+                  <td className="invoice-col-hsn p-2 border-r border-black"></td>
+                  <td className="invoice-col-batch p-2 border-r border-black"></td>
+                  <td className="invoice-col-exp p-2 border-r border-black"></td>
+                  <td className="invoice-col-mfd p-2 border-r border-black"></td>
+                  <td className="invoice-col-qty p-2 border-r border-black"></td>
+                  <td className="invoice-col-money p-2 border-r border-black"></td>
+                  <td className="invoice-col-money p-2 border-r border-black"></td>
+                  <td className="invoice-col-tax p-2 border-r border-black"></td>
+                  <td className="invoice-col-amount p-2"></td>
                 </tr>
               )
             )}
