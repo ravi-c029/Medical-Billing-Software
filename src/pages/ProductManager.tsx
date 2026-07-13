@@ -15,7 +15,7 @@ export const ProductManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const initialFormState: Medicine = {
-    id: '', name: '', hsn: '', mrp: 0, mfdBy: '', taxPercent: 5, category: 'Tablets', stock: 0
+    id: '', name: '', hsn: '', mrp: 0, mfdBy: '', taxPercent: 5, category: 'Tablets', stock: 0, batch: '', exp: '', rate: 0
   };
   const [formData, setFormData] = useState<Medicine>(initialFormState);
   const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +47,7 @@ export const ProductManager = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ 
       ...prev, 
-      [name]: name === 'mrp' || name === 'taxPercent' || name === 'stock' ? Number(value) : value 
+      [name]: name === 'mrp' || name === 'taxPercent' || name === 'stock' || name === 'rate' ? Number(value) : value 
     }));
   };
 
@@ -107,7 +107,10 @@ export const ProductManager = () => {
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="p-4 font-semibold text-slate-700">Product Name</th>
                 <th className="p-4 font-semibold text-slate-700">HSN</th>
+                <th className="p-4 font-semibold text-slate-700">Batch No</th>
+                <th className="p-4 font-semibold text-slate-700">Exp Date</th>
                 <th className="p-4 font-semibold text-slate-700">MRP (₹)</th>
+                <th className="p-4 font-semibold text-slate-700">Rate (₹)</th>
                 <th className="p-4 font-semibold text-slate-700">Tax %</th>
                 <th className="p-4 font-semibold text-slate-700">Category</th>
                 <th className="p-4 font-semibold text-slate-700">Stock</th>
@@ -125,7 +128,10 @@ export const ProductManager = () => {
                 >
                   <td className="p-4 font-medium text-slate-800">{item.name}</td>
                   <td className="p-4 text-slate-600">{item.hsn}</td>
+                  <td className="p-4 text-slate-600">{item.batch || '-'}</td>
+                  <td className="p-4 text-slate-600">{item.exp || '-'}</td>
                   <td className="p-4 text-slate-600 font-semibold">{item.mrp.toFixed(2)}</td>
+                  <td className="p-4 text-slate-600 font-semibold">{item.rate ? item.rate.toFixed(2) : '-'}</td>
                   <td className="p-4 text-slate-600">{item.taxPercent}%</td>
                   <td className="p-4 text-slate-600">
                     <span className="bg-slate-200 text-slate-700 px-2 py-1 rounded text-xs font-medium">
@@ -151,7 +157,7 @@ export const ProductManager = () => {
               ))}
               {filteredMedicines.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500">
+                  <td colSpan={10} className="p-8 text-center text-slate-500">
                     No products found.
                   </td>
                 </tr>
@@ -166,7 +172,12 @@ export const ProductManager = () => {
           <NeuInput label="Product Name" name="name" value={formData.name} onChange={handleChange} required />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <NeuInput label="HSN Code" name="hsn" value={formData.hsn} onChange={handleChange} />
+            <NeuInput label="Batch No" name="batch" value={formData.batch || ''} onChange={handleChange} />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <NeuInput label="MRP (₹)" name="mrp" type="number" value={formData.mrp} onChange={handleChange} />
+            <NeuInput label="Rate (₹)" name="rate" type="number" value={formData.rate || 0} onChange={handleChange} />
+            <NeuInput label="Expiry Date" name="exp" placeholder="MM/YYYY" value={formData.exp || ''} onChange={handleChange} />
           </div>
           <NeuInput label="Manufacturer" name="mfdBy" value={formData.mfdBy} onChange={handleChange} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

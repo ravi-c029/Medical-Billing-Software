@@ -1,62 +1,39 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { type User, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 interface AuthState {
-  passcode: string | null;
-  pattern: number[] | null; // Sequential array of node indices (0-8)
+  user: User | null;
   isAuthenticated: boolean;
-  isRegistered: boolean;
+  isLoading: boolean;
   
   // Actions
-  register: (passcode: string, pattern: number[] | null) => void;
-  login: (passcode: string) => boolean;
-  loginWithPattern: (inputPattern: number[]) => boolean;
-  logout: () => void;
+  initAuth: () => void;
+  logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      passcode: null,
-      pattern: null,
-      isAuthenticated: false,
-      isRegistered: false,
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true, // true initially until Firebase confirms state
 
-      register: (passcode, pattern) => set({
-        passcode,
-        pattern,
-        isRegistered: true,
-        isAuthenticated: true
-      }),
+  initAuth: () => {
+    // Listen to Firebase Auth state changes
+    onAuthStateChanged(auth, (user) => {
+      set({
+        user: user,
+        isAuthenticated: !!user,
+        isLoading: false
+      });
+    });
+  },
 
-      login: (passcode) => {
-        const state = get();
-        if (state.passcode === passcode) {
-          set({ isAuthenticated: true });
-          return true;
-        }
-        return false;
-      },
-
-      loginWithPattern: (inputPattern) => {
-        const state = get();
-        if (!state.pattern) return false;
-        
-        // Match lengths first
-        if (inputPattern.length !== state.pattern.length) return false;
-        
-        // Check Every element in sequence
-        const isMatch = inputPattern.every((node, i) => node === state.pattern![i]);
-
-        if (isMatch) {
-          set({ isAuthenticated: true });
-          return true;
-        }
-        return false;
-      },
-
-      logout: () => set({ isAuthenticated: false }),
-    }),
-    { name: 'ravi-auth-storage' }
-  )
-);
+  logout: async () => {
+    try {
+      await firebaseSignOut(auth);
+      set({ user: null, isAuthenticated: false });
+    } catch (error) {
+      console.error('Logout error', error);
+    }
+  },
+}));

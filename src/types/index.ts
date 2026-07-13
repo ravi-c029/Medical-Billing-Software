@@ -7,6 +7,9 @@ export interface Medicine {
   taxPercent: number;
   category: string;
   stock?: number;
+  batch?: string;
+  exp?: string;
+  rate?: number;
 }
 
 export interface InvoiceLineItem {

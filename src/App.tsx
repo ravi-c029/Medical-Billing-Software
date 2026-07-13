@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Layout } from './components/layout/Layout';
 
 import { Dashboard } from './pages/Dashboard';
@@ -8,8 +9,15 @@ import { ProductManager } from './pages/ProductManager';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { useAuthStore } from './store/authStore';
 
 function App() {
+  const { initAuth } = useAuthStore();
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
   return (
     <BrowserRouter>
       <Routes>
