@@ -106,16 +106,19 @@ export const NewInvoice = () => {
 
   const handleProductSelect = (index: number, medicine: Medicine) => {
     const newItems = [...items];
+    const itemRate = medicine.rate || medicine.mrp;
     newItems[index] = {
       ...newItems[index],
       productName: medicine.name,
       hsn: medicine.hsn,
+      batch: medicine.batch || '',
+      exp: medicine.exp || '',
       mrp: medicine.mrp,
-      rate: medicine.mrp,
+      rate: itemRate,
       mfdBy: medicine.mfdBy,
       taxPercent: medicine.taxPercent,
       qty: 1,
-      amount: medicine.mrp,
+      amount: itemRate,
     };
     setItems(newItems);
   };

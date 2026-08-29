@@ -63,6 +63,31 @@
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 
+/* Invoice Print Sheet - Structural rules for both View & Print to prevent horizontal stretching */
+.invoice-print-sheet table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+}
+.invoice-print-sheet th,
+.invoice-print-sheet td {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.invoice-print-sheet .invoice-col-batch {
+  word-break: break-all;
+}
+.invoice-print-sheet .invoice-col-sl { width: 4%; white-space: nowrap; }
+.invoice-print-sheet .invoice-product-name { width: 24%; }
+.invoice-print-sheet .invoice-col-hsn { width: 7%; }
+.invoice-print-sheet .invoice-col-batch { width: 9%; }
+.invoice-print-sheet .invoice-col-exp { width: 8%; }
+.invoice-print-sheet .invoice-col-mfd { width: 10%; }
+.invoice-print-sheet .invoice-col-qty { width: 5%; white-space: nowrap; }
+.invoice-print-sheet .invoice-col-money { width: 8%; }
+.invoice-print-sheet .invoice-col-tax { width: 6%; white-space: nowrap; }
+.invoice-print-sheet .invoice-col-amount { width: 11%; }
+
 /* Invoices Print Styles overriding */
 @media print {
   @page {
@@ -126,34 +151,34 @@
   .invoice-print-sheet table {
     table-layout: fixed;
     border-collapse: collapse;
-    font-size: 13px !important;
+    font-size: 12px !important;
     width: 100% !important;
     height: auto;
   }
   .invoice-print-sheet th,
   .invoice-print-sheet td {
-    padding: 5px 4px !important;
+    padding: 3px 2px !important;
     line-height: 1.2;
     overflow-wrap: break-word;
-    word-break: break-word;
+    word-break: normal;
   }
   .invoice-print-sheet .invoice-product-name {
     font-size: 12px !important;
     font-weight: 600;
   }
-  .invoice-print-sheet .invoice-col-sl { width: 4%; }
-  .invoice-print-sheet .invoice-product-name { width: 28%; }
-  .invoice-print-sheet .invoice-col-hsn { width: 8%; }
-  .invoice-print-sheet .invoice-col-batch { width: 8%; }
-  .invoice-print-sheet .invoice-col-exp { width: 9%; }
+  .invoice-print-sheet .invoice-col-sl { width: 4%; white-space: nowrap; }
+  .invoice-print-sheet .invoice-product-name { width: 24%; }
+  .invoice-print-sheet .invoice-col-hsn { width: 7%; }
+  .invoice-print-sheet .invoice-col-batch { width: 9%; }
+  .invoice-print-sheet .invoice-col-exp { width: 8%; }
   .invoice-print-sheet .invoice-col-mfd { width: 10%; }
-  .invoice-print-sheet .invoice-col-qty { width: 5%; }
-  .invoice-print-sheet .invoice-col-money { width: 7%; }
+  .invoice-print-sheet .invoice-col-qty { width: 5%; white-space: nowrap; }
+  .invoice-print-sheet .invoice-col-money { width: 8%; }
   .invoice-print-sheet .invoice-col-tax { 
     width: 6%; 
     white-space: nowrap;
   }
-  .invoice-print-sheet .invoice-col-amount { width: 8%; }
+  .invoice-print-sheet .invoice-col-amount { width: 11%; }
   
   .invoice-print-sheet .invoice-items-wrap {
     flex: 0 0 auto;
